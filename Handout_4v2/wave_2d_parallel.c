@@ -142,7 +142,7 @@ void boundary_condition ( void )
     //columns
     for (int_t i=0; i<number_of_rows; i++) {
         U(i,-1) = U(i,1);       // bottom ghost row <- mirror of row 1
-        U(i,number_of_columns)  = U(i,N-2);     // top ghost row <- mirror of row N-2
+        U(i,number_of_columns)  = U(i,number_of_columns-2);     // top ghost row <- mirror of row N-2
     }
 
     //bottom / top row.
@@ -153,8 +153,8 @@ void boundary_condition ( void )
 
     // Corner ghost cells (use ghost indices)
     U(-1,-1) = U(1,1);             // bottom-left
-    U(-1,number_of_rows)  = U(1,number_of_rows-2);           // top-left
-    U(number_of_columns,-1)  = U(number_of_columns-2,1);           // bottom-right
+    U(-1,number_of_columns)  = U(1,number_of_columns-2);           // top-left
+    U(number_of_rows,-1)  = U(number_of_rows-2,1);           // bottom-right
     U(number_of_rows,number_of_columns)   = U(number_of_rows-2,number_of_columns-2);         // top-right
 // END: T7
 }
@@ -243,8 +243,8 @@ void border_exchange ( void )
 {
 // BEGIN: T6
 int up, down, left, right;
-    MPI_Cart_shift(cartesian_comm, 1, 1, &left, &right);
-    MPI_Cart_shift(cartesian_comm, 0, 1, &up, &down);
+    MPI_Cart_shift(cartesian_comm, 0, 1, &left, &right);
+    MPI_Cart_shift(cartesian_comm, 1, 1, &up, &down);
 
     //Håper up og down er riktig rekkefølge
     // printf("min cartesian rank er %d, mine cords er %d, "
@@ -279,12 +279,12 @@ int up, down, left, right;
     //Skal prøve å bytte alt for å se hva som skjer.
     if(right!=MPI_PROC_NULL){
         for(int i =0; i<number_of_rows; i++){
-            U(number_of_rows-i, -1) = right_column_recv[i];
+            U(i, number_of_columns) = right_column_recv[i];
         }
     }
     if(left!=MPI_PROC_NULL){
         for(int i =0; i<number_of_rows; i++){
-            U(number_of_rows-i, number_of_columns) = left_column_recv[i];
+            U(i, -1) = left_column_recv[i];
         }
     }
     
@@ -307,17 +307,17 @@ int up, down, left, right;
     MPI_Sendrecv( top_row_send , number_of_columns , MPI_DOUBLE , up , 0 ,
          bottom_row_recv , number_of_columns , MPI_DOUBLE , down , 0 , cartesian_comm , NULL);
     
-    if(up!=MPI_PROC_NULL){
-        for(int j =0; j<number_of_rows; j++){
-            U(-1, number_of_columns-j) = top_row_recv[j];
-        }
-    }
+    // if(up!=MPI_PROC_NULL){
+    //     for(int j =0; j<number_of_rows; j++){
+    //         U(-1, number_of_columns-j) = top_row_recv[j];
+    //     }
+    // }
 
-    if(down!=MPI_PROC_NULL){
-        for(int j =0; j<number_of_rows; j++){
-            U(number_of_rows, number_of_columns-j) = bottom_row_recv[j];
-        }
-    }
+    // if(down!=MPI_PROC_NULL){
+    //     for(int j =0; j<number_of_rows; j++){
+    //         U(number_of_rows, number_of_columns-j) = bottom_row_recv[j];
+    //     }
+    // }
 
 
 // END: T6
