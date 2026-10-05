@@ -186,7 +186,9 @@ void domain_initialize ( void )
     printf("My cartesian rank %d, my coordinates are %d, %d, my start row:%d my start column %d \n",
         cartesian_rank, my_cords[0], my_cords[1], index_row_start, index_column_start);
     // initialize interior (physical cells)
-    // y_span fordi vi har y_span antall rader
+
+    //Den vil bli større for en verdi når N er mindre
+    //Dette skjer fordi
     for ( int_t i=0; i<number_of_rows; i++ )
     {
         for ( int_t j=0; j<number_of_columns; j++ )
@@ -307,17 +309,17 @@ int up, down, left, right;
     MPI_Sendrecv( top_row_send , number_of_columns , MPI_DOUBLE , up , 0 ,
          bottom_row_recv , number_of_columns , MPI_DOUBLE , down , 0 , cartesian_comm , NULL);
     
-    // if(up!=MPI_PROC_NULL){
-    //     for(int j =0; j<number_of_rows; j++){
-    //         U(-1, number_of_columns-j) = top_row_recv[j];
-    //     }
-    // }
+    if(up!=MPI_PROC_NULL){
+        for(int j =0; j<number_of_columns; j++){
+            U(number_of_rows, j) = top_row_recv[j];
+        }
+    }
 
-    // if(down!=MPI_PROC_NULL){
-    //     for(int j =0; j<number_of_rows; j++){
-    //         U(number_of_rows, number_of_columns-j) = bottom_row_recv[j];
-    //     }
-    // }
+    if(down!=MPI_PROC_NULL){
+        for(int j =0; j<number_of_columns; j++){
+            U(-1, j) = bottom_row_recv[j];
+        }
+    }
 
 
 // END: T6
