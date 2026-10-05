@@ -100,26 +100,41 @@ void domain_save ( int_t step )
 
     snprintf(filename, sizeof(filename), "data/%05" PRId64 ".dat", step);
 
-    FILE *out = fopen(filename, "wb");
-    if (out == NULL) {
-        perror("fopen output file");
-        fprintf(stderr, "Failed to open '%s' for writing.\n", filename);
-        exit(EXIT_FAILURE);
+    MPI_File file_handle;
+
+    MPI_File_open( cartesian_comm , filename , MPI_MODE_RDWR | MPI_MODE_CREATE ,
+         MPI_INFO_NULL , &file_handle);
+        
+    MPI_File_set_size(file_handle, 0);
+         
+    //Hvordan skal jeg skrive til filen.
+    //Bare skriver inn koordinatene med y først i guess 
+    for (int i = 0; i < x_span; i++){
+        MPI_File_write_at_all( file_handle , ((x_start+i) * M + y_start) *sizeof(real_t),
+         &U(i,0) , y_span , MPI_DOUBLE , MPI_STATUS_IGNORE);
     }
 
-    for ( int_t i = 0; i < M; ++i ) {
-        size_t written = fwrite ( &U(i,0), sizeof(real_t), (size_t)N, out );
-        if ( written != (size_t)N ) {
-            perror("fwrite");
-            fclose(out);
-            exit(EXIT_FAILURE);
-        }
-    }
+    MPI_File_close( &file_handle);
+    // FILE *out = fopen(filename, "wb");
+    // if (out == NULL) {
+    //     perror("fopen output file");
+    //     fprintf(stderr, "Failed to open '%s' for writing.\n", filename);
+    //     exit(EXIT_FAILURE);
+    // }
 
-    if ( fclose(out) != 0 ) {
-        perror("fclose");
-        exit(EXIT_FAILURE);
-    }
+    // for ( int_t i = 0; i < M; ++i ) {
+    //     size_t written = fwrite ( &U(i,0), sizeof(real_t), (size_t)N, out );
+    //     if ( written != (size_t)N ) {
+    //         perror("fwrite");
+    //         fclose(out);
+    //         exit(EXIT_FAILURE);
+    //     }
+    // }
+
+    // if ( fclose(out) != 0 ) {
+    //     perror("fclose");
+    //     exit(EXIT_FAILURE);
+    // }
 // END: T8
 }
 
